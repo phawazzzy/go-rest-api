@@ -26,7 +26,7 @@ func handleRequestwithmux() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 
 	myRouter.HandleFunc("/", homePage)
-	myRouter.HandleFunc("/article", returnAllArticles)
+	myRouter.HandleFunc("/articles", returnAllArticles).Methods("GET")
 	// NOTE: Ordering is important here! This has to be defined before
 	// the other `/article` endpoint.
 	myRouter.HandleFunc("/articles", createNewArticles).Methods("POST")
@@ -100,9 +100,20 @@ func updateArticle(w http.ResponseWriter, r *http.Request) {
 
 	for index, article := range Articles {
 		if article.Id == id {
+			// delete it first
+			Articles = append(Articles[:index], Articles[index+1:]...)
+			// now create new one
+			var article Article
+			json.Unmarshal(reqBody, &article)
+			// update our global Articles array to include
+			// our new Article
+			Articles = append(Articles, article)
+			json.NewEncoder(w).Encode(article)
 
 		}
 	}
+	json.NewEncoder(w).Encode(Articles)
+
 }
 func main() {
 	fmt.Println("Rest API V2.0 - muc Routers")
